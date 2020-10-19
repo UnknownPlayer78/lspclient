@@ -128,6 +128,22 @@ class ShutdownMessage extends RequestMessage {
   }
 }
 
+class ExitMessage extends RequestMessage {
+  @override
+  String method = 'exit';
+  @override
+  int id;
+  ExitMessage({id}) : id = id;
+  @override
+  String toString() {
+    return json.encode({
+      'jsonrpc': jsonrpc,
+      'method': method,
+      'id': id,
+    });
+  }
+}
+
 abstract class ClientCapabilities {
   /// Workspace specific client capabilities.
   dynamic workspace;

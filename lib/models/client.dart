@@ -65,19 +65,26 @@ class LspClient {
     return completer.future;
   }
 
-  void shutdown() async {
+  Future<bool> shutdown() async {
+    var completer = Completer<bool>();
+    var id = Random().nextInt(100000);
     print('called shutdown()');
-    var message = ShutdownMessage(id: Random().nextInt(10000)).toString();
+    var message = ShutdownMessage(id: id).toString();
     currentProcess.stdin.write(BaseProtocol(
             header: HeaderPart(contentLength: utf8.encode(message).length))
         .toMessage());
+    completer.complete(true);
+    return completer.future;
   }
 
-  void exit() async {
+  Future<bool> exit() async {
+    var completer = Completer<bool>();
+    var id = Random().nextInt(100000);
     print('called exit()');
-    var message = ShutdownMessage(id: Random().nextInt(10000)).toString();
+    var message = ExitMessage(id: id).toString();
     currentProcess.stdin.write(BaseProtocol(
             header: HeaderPart(contentLength: utf8.encode(message).length))
         .toMessage());
+    return completer.future;
   }
 }

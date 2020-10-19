@@ -14,4 +14,5 @@ void main(List<String> arguments) async {
       logLevel: 'verbose');
   await client.initialize();
   await client.shutdown();
+  await client.exit();
 }
