@@ -39,8 +39,15 @@ class LspClient {
     await for (var response in lspserver.stdout) {
       var response_text = utf8.decode(response);
       print(response_text);
-      var message =
-          json.decode(BaseProtocol.fromLSPMessage(response_text).content);
+      var message;
+      try {
+        message =
+            json.decode(BaseProtocol.fromLSPMessage(response_text).content);
+      } catch (e) {
+        print('\nERROR: $e');
+        message =
+            json.decode(BaseProtocol.fromLSPMessage(response_text).content);
+      }
       if (message['id'] == id) {
         print('response appears to respond to respond to InitializeMessage');
       }

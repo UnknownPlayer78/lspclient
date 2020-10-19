@@ -11,7 +11,9 @@ class BaseProtocol {
     var header_string = message.split('\r\n\r\n')[0];
     header = HeaderPart.fromHeader(header_string);
     var without_header = message.replaceAll(header_string, '').trim();
-    content = without_header;
+    content = without_header.isNotEmpty && without_header != ' '
+        ? without_header
+        : '{}';
   }
 
   String toMessage() => '${header.toHeader()}\r\n${content.toString()}';
@@ -31,8 +33,8 @@ class HeaderPart {
   HeaderPart.fromHeader(String header) {
     var parsed_header = parseHeader(header);
     contentType = parsed_header['Content-Type'];
-    contentLength = int.parse(
-        parsed_header['Content-Length'] ?? utf8.encode(header).length);
+    contentLength = int.parse(parsed_header['Content-Length'] ??
+        utf8.encode(header).length.toString());
   }
   String toHeader() =>
       'Content-Type: ${contentType ?? 'utf-8'}\r\nContent-Length: $contentLength\r\n';
