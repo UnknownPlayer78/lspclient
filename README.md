@@ -3,6 +3,4 @@
 An LSP (Language Server Protcol) client written in dart. 
 
 ## Implementation progress
-- [ ] Implementation progress section
-- [ ] The lsp protocol
- 
+- Check the [GitHub project](https://github.com/daaniiieel/lspclient/projects/1)
