@@ -1,4 +1,8 @@
-A simple command-line application.
+# lspclient
 
-Created from templates made available by Stagehand under a BSD-style
-[license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
+An LSP (Language Server Protcol) client written in dart. 
+
+## Implementation progress
+- [ ] Implementation progress section
+- [ ] The lsp protocol
+ 
