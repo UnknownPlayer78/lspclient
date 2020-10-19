@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:lspclient/models/lsp/serverCapabilities.dart';
 import 'package:lspclient/models/message.dart';
 import 'dart:math';
 import 'dart:convert';
@@ -51,10 +52,13 @@ class LspClient {
         }
       }
     }
-
     var base = BaseProtocol.fromLSPMessage(response_message);
+    var message_map = json.decode(base.content);
+
     if (json.decode(base.content)['id'] == id) {
       print('Got initialize() response with id $id');
+      print(ServerCapabilities.fromMap(message_map['result']['capabilities']));
+
       completer.complete(true);
     }
 

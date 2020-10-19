@@ -27,7 +27,7 @@ class CompletionOptions {
     return CompletionOptions(
         resolveProvider: map['resolveProvider'],
         allCommitCharacters: map['allCommitCharacters'],
-        triggerCharacters: map['triggerCharacters']);
+        triggerCharacters: List<String>.from(map['triggerCharacters']));
   }
   CompletionOptions({
     this.triggerCharacters,
