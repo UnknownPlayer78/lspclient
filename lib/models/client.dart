@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:lspclient/models/lsp/serverCapabilities.dart';
+import 'package:chunked_stream/chunked_stream.dart';
 import 'package:lspclient/models/message.dart';
+import 'package:lspclient/models/lsp/serverCapabilities.dart';
 import 'dart:math';
 import 'dart:convert';
 
@@ -12,6 +13,7 @@ class LspClient {
   int processId = pid;
   String logLevel;
   Process currentProcess;
+  ServerCapabilities serverCapabilities;
 
   LspClient(
       {this.command, this.args, this.inputType, this.processId, this.logLevel});
@@ -34,33 +36,48 @@ class LspClient {
                 },
                 trace: 'verbose'))
         .toString();
-    print('sending initialize with id $id');
+    print('sending initialize() with id $id');
     currentProcess = lspserver;
     currentProcess.stdin.write(BaseProtocol(
             content: message,
             header: HeaderPart(contentLength: utf8.encode(message).length))
         .toMessage());
-
-    var response_message = '';
-    var count = 0;
-    await for (var event in lspserver.stdout) {
-      if (!(count >= 2)) {
-        response_message += utf8.decode(event);
-        count++;
-        if (count >= 2) {
-          break;
-        }
+    final reader = ChunkedStreamIterator(currentProcess.stdout);
+    // first, parse the stream of bytes until a '\r\n\r\n' token, which indicated the end of the header.
+    var headerparts = '';
+    while (true) {
+      if (headerparts.endsWith('\r\n\r\n')) {
+        break;
+      } else {
+        var data = await reader.read(1);
+        headerparts += utf8.decode(data);
       }
     }
-    var base = BaseProtocol.fromLSPMessage(response_message);
-    var message_map = json.decode(base.content);
+    headerparts = headerparts.trim();
+    var length = HeaderPart.fromHeader(headerparts).contentLength;
+    var body = json.decode(utf8.decode(await reader.read(length)));
+    await reader.cancel();
 
-    if (json.decode(base.content)['id'] == id) {
+    if (body['id'] == id) {
       print('Got initialize() response with id $id');
-      print(ServerCapabilities.fromMap(message_map['result']['capabilities']));
-
+      serverCapabilities =
+          ServerCapabilities.fromMap(body['result']['capabilities']);
       completer.complete(true);
+      await initializedNotification();
     }
+
+    return completer.future;
+  }
+
+  Future<bool> initializedNotification() async {
+    var completer = Completer<bool>();
+    print('sending initialized notification');
+    var message = InitializedNotification().toJson();
+    currentProcess.stdin.write(BaseProtocol(
+            header: HeaderPart(contentLength: utf8.encode(message).length),
+            content: message)
+        .toMessage());
+    completer.complete(true);
 
     return completer.future;
   }
@@ -71,7 +88,8 @@ class LspClient {
     print('called shutdown()');
     var message = ShutdownMessage(id: id).toString();
     currentProcess.stdin.write(BaseProtocol(
-            header: HeaderPart(contentLength: utf8.encode(message).length))
+            header: HeaderPart(contentLength: utf8.encode(message).length),
+            content: message)
         .toMessage());
     completer.complete(true);
     return completer.future;
@@ -83,8 +101,10 @@ class LspClient {
     print('called exit()');
     var message = ExitMessage(id: id).toString();
     currentProcess.stdin.write(BaseProtocol(
-            header: HeaderPart(contentLength: utf8.encode(message).length))
+            header: HeaderPart(contentLength: utf8.encode(message).length),
+            content: message)
         .toMessage());
+    completer.complete(true);
     return completer.future;
   }
 }

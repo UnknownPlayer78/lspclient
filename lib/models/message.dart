@@ -194,3 +194,33 @@ abstract class ResponseError {
 }
 
 ///Completion options.
+
+abstract class NotificationMessage extends Message {
+  /// The method to be invoked
+  String method;
+
+  /// The notification's params
+  dynamic /*array | object */ params;
+}
+
+class InitializedNotification extends NotificationMessage {
+  @override
+  String method = 'initialized';
+  @override
+  dynamic params = {};
+
+  InitializedNotification();
+
+  Map<String, dynamic> toMap() {
+    return {
+      'method': method,
+      'params': params,
+    };
+  }
+
+  String toJson() => json.encode(toMap());
+
+  @override
+  String toString() =>
+      'InitializedNotification(method: $method, params: $params)';
+}
