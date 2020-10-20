@@ -45,13 +45,9 @@ class LspClient {
     final reader = ChunkedStreamIterator(currentProcess.stdout);
     // first, parse the stream of bytes until a '\r\n\r\n' token, which indicated the end of the header.
     var headerparts = '';
-    while (true) {
-      if (headerparts.endsWith('\r\n\r\n')) {
-        break;
-      } else {
-        var data = await reader.read(1);
-        headerparts += utf8.decode(data);
-      }
+    while (!headerparts.endsWith('\r\n\r\n')) {
+      var data = await reader.read(1);
+      headerparts += utf8.decode(data);
     }
     headerparts = headerparts.trim();
     var length = HeaderPart.fromHeader(headerparts).contentLength;
